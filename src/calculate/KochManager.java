@@ -39,32 +39,22 @@ public class KochManager {
         count++;
 
         if(count == 3) {
-            drawEdges();
+            application.requestDrawEdges();
         }
     }
 
     public void changeLevel(int nxt) throws InterruptedException {
-        TimeStamp ts = new TimeStamp();
         count = 0;
-        ts.setBegin("Start calculation");
         edges.clear();
 
-        Thread rightEdge = new Thread(new Generator(nxt, this, 1));
+        Thread rightEdge = new Thread(new Generator(nxt, this, EdgeEnum.RIGHT));
         rightEdge.start();
 
-        Thread leftEdge = new Thread(new Generator(nxt, this, 2));
+        Thread leftEdge = new Thread(new Generator(nxt, this, EdgeEnum.LEFT));
         leftEdge.start();
 
-        Thread bottomEdge = new Thread(new Generator(nxt, this, 3));
+        Thread bottomEdge = new Thread(new Generator(nxt, this, EdgeEnum.BOTTOM));
         bottomEdge.start();
 
-        ts.setEnd();
-        application.setTextCalc(ts.toString());
-
-        ts = new TimeStamp();
-        ts.setBegin("Draw edges");
-
-        ts.setEnd();
-        application.setTextDraw(ts.toString());
     }
 }

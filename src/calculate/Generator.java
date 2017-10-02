@@ -7,23 +7,23 @@ class Generator extends Thread implements Observer {
 
     private KochFractal koch = new KochFractal();
     private KochManager manager;
-    private int side;
+    private EdgeEnum edge;
 
-    public Generator(int level, KochManager manager, int side)
+    public Generator(int level, KochManager manager, EdgeEnum edge)
     {
         koch.setLevel(level);
         this.manager = manager;
         koch.addObserver(this);
-        this.side = side;
+        this.edge = edge;
     }
 
     @Override
     public void run() {
-        if (side == 1)
+        if (edge == EdgeEnum.RIGHT)
         koch.generateRightEdge();
-        if (side == 2)
+        if (edge == EdgeEnum.LEFT)
         koch.generateLeftEdge();
-        if(side == 3)
+        if(edge == EdgeEnum.BOTTOM)
         koch.generateBottomEdge();
 
         manager.addCount();

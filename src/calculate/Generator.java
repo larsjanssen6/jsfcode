@@ -1,16 +1,21 @@
 package calculate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.Callable;
 
-class Generator extends Thread implements Observer {
+class Generator implements Callable<List<Edge>>, Observer {
 
     private KochFractal koch = new KochFractal();
     private KochManager manager;
     private EdgeEnum edge;
+    private List<Edge> edges;
 
     public Generator(int level, KochManager manager, EdgeEnum edge)
     {
+        edges = new ArrayList<>();
         koch.setLevel(level);
         this.manager = manager;
         koch.addObserver(this);
@@ -18,19 +23,19 @@ class Generator extends Thread implements Observer {
     }
 
     @Override
-    public void run() {
+    public List<Edge> call() throws Exception {
         if (edge == EdgeEnum.RIGHT)
-        koch.generateRightEdge();
+            koch.generateRightEdge();
         if (edge == EdgeEnum.LEFT)
-        koch.generateLeftEdge();
+            koch.generateLeftEdge();
         if(edge == EdgeEnum.BOTTOM)
-        koch.generateBottomEdge();
+            koch.generateBottomEdge();
 
-        manager.addCount();
+        return edges;
     }
 
     @Override
     public void update (Observable o, Object arg) {
-        manager.addKoch((Edge)arg);
+        edges.add((Edge)arg);
     }
 }

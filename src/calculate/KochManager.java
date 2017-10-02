@@ -9,6 +9,11 @@ import jsf31kochfractalfx.JSF31KochFractalFX;
 import timeutil.TimeStamp;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class KochManager {
     private JSF31KochFractalFX application;
@@ -25,36 +30,51 @@ public class KochManager {
     }
 
     public void drawEdges() {
+        TimeStamp ts = new TimeStamp();
+        ts.setBegin("Calculating");
+
         application.clearKochPanel();
 
         for (Edge edge: edges) {
             application.drawEdge(edge);
         }
 
+        ts.setEnd();
+        application.setTextDraw(ts.toString());
         application.setTextNrEdges(Integer.toString(edges.size()));
     }
 
-    public synchronized void addCount()
-    {
-        count++;
-
-        if(count == 3) {
-            application.requestDrawEdges();
-        }
-    }
-
-    public void changeLevel(int nxt) throws InterruptedException {
+    public void changeLevel(int nxt) throws InterruptedException, ExecutionException {
         count = 0;
         edges.clear();
 
-        Thread rightEdge = new Thread(new Generator(nxt, this, EdgeEnum.RIGHT));
-        rightEdge.start();
+        TimeStamp ts = new TimeStamp();
+        ts.setBegin("Calculating");
 
-        Thread leftEdge = new Thread(new Generator(nxt, this, EdgeEnum.LEFT));
-        leftEdge.start();
+        Generator leftEdge = new Generator(nxt , this, EdgeEnum.LEFT);
+        Generator rightEdge = new Generator(nxt , this, EdgeEnum.RIGHT);
+        Generator bottomEdge = new Generator(nxt , this, EdgeEnum.BOTTOM);
 
-        Thread bottomEdge = new Thread(new Generator(nxt, this, EdgeEnum.BOTTOM));
-        bottomEdge.start();
+        ExecutorService pool = Executors.newCachedThreadPool();
 
+        Future<List<Edge>> featureLeftEdge = pool.submit(leftEdge);
+        Future<List<Edge>> featureRightEdge = pool.submit(rightEdge);
+        Future<List<Edge>> featureBottomEdge = pool.submit(bottomEdge);
+
+        this.addEdges(featureLeftEdge.get());
+        this.addEdges(featureRightEdge.get());
+        this.addEdges(featureBottomEdge.get());
+
+        pool.shutdown();
+
+        ts.setEnd();
+        application.setTextCalc(ts.toString());
+
+        application.requestDrawEdges();
+    }
+
+    public synchronized void addEdges(List<Edge> edges)
+    {
+        this.edges.addAll(edges);
     }
 }
